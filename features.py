@@ -12,7 +12,20 @@ rawfeats['total_cases'] = rawlabels['total_cases']
 sj = rawfeats[rawfeats.city=='sj'].copy()
 #print(sj)
 #sj.head()
+# Interpolate missing values for Iquitos
+sj = sj.interpolate(method='linear', limit_direction='forward')
+
+# Check if there are still any missing values
+print(sj.isnull().sum())
+
+
+
 iq = rawfeats[rawfeats.city=='iq'].copy()
+# Interpolate missing values for Iquitos
+iq = iq.interpolate(method='linear', limit_direction='forward')
+
+# Check if there are still any missing values
+print(iq.isnull().sum())
 
 
 #------- San Juan ------------------------------------------------------------------------------------------------
