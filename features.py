@@ -14,6 +14,8 @@ sj = rawfeats[rawfeats.city=='sj'].copy()
 #sj.head()
 iq = rawfeats[rawfeats.city=='iq'].copy()
 
+sj = sj.interpolate(method='linear', limit_direction='forward')
+iq = iq.interpolate(method='linear', limit_direction='forward')
 
 #------- San Juan ------------------------------------------------------------------------------------------------
 plt.figure
