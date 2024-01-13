@@ -18,7 +18,7 @@ test = pd.read_csv('data/dengue_features_test.csv')
 
 # Replacing NAs
 columns_to_interpolate = [
-    'ndvi_ne', 'ndvi_nw', 'ndvi_se', 'ndvi_sw', 'precipitation_amt_mm',
+    'ndvi_nw', 'ndvi_se', 'ndvi_sw', 'precipitation_amt_mm',
     'reanalysis_air_temp_k', 'reanalysis_avg_temp_k', 'reanalysis_dew_point_temp_k',
     'reanalysis_max_air_temp_k', 'reanalysis_min_air_temp_k', 'reanalysis_precip_amt_kg_per_m2',
     'reanalysis_relative_humidity_percent', 'reanalysis_sat_precip_amt_mm',
@@ -50,6 +50,15 @@ X_train_sj = train_sj.drop(columns=['total_cases'])
 y_train_sj = train_sj['total_cases']
 fit = linear_model.OLS(y_train_sj, X_train_sj).fit()
 # print(fit.summary())
+
+# Retrieve variable names
+variable_names = X_train_sj.columns
+coefficients = fit.params
+
+# Display variable names and their coefficients
+for var, coef in zip(variable_names, coefficients):
+    print(f"{var}: {coef}")
+
 
 # Predicting the model
 X_test_sj = test_sj.drop(columns=['total_cases'])

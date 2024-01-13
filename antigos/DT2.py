@@ -22,20 +22,25 @@ for col in dengue_data.columns[4:]:
     dengue_data[col] = dengue_data[col].interpolate()
 
 # Mean Values of Data
-#aggregated = dengue_data.groupby('city').mean().T
-
-numeric_columns = dengue_data.select_dtypes(include=['number']).columns
-aggregated = dengue_data[numeric_columns].groupby('city').mean().T
-aggregated.columns = ['iq', 'sj']
+# aggregated = dengue_data.groupby('city').mean().T
+# aggregated.columns = ['iq', 'sj']
 
 # Correlation Matrix
 num_dengue_data = dengue_data.drop(columns=['city', 'week_start_date'])
 correlation_matrix = num_dengue_data.corr()
 
-high_correlated_feature = correlation_matrix[correlation_matrix > 0.90].stack().index
-high_correlated_feature = set(col for col in high_correlated_feature if col[0] != col[1])
+# high_correlated_feature = correlation_matrix[correlation_matrix > 0.90].stack().index
+# high_correlated_feature = set(col for col in high_correlated_feature if col[0] != col[1])
+high_correlated_feature = [col[0] if col[0] != col[1] else col[1] for col in correlation_matrix[correlation_matrix > 0.90].stack().index]
 
+# Print columns before dropping
+print("Columns before dropping:", dengue_data.columns)
+
+# Drop highly correlated features
 dengue_data = dengue_data.drop(columns=high_correlated_feature)
+
+# Print columns after dropping
+print("Columns after dropping:", dengue_data.columns)
 dengue_features_test = dengue_features_test.drop(columns=high_correlated_feature)
 
 # Data Normalization

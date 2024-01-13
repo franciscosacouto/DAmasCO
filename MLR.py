@@ -13,7 +13,7 @@ iq= features.iq
 #print(sj.head())
 
 #Setting the value for X and Y
-x = sj[['weekofyear', 'reanalysis_dew_point_temp_k', 'reanalysis_relative_humidity_percent', 'reanalysis_specific_humidity_g_per_kg', 'station_avg_temp_c', 'reanalysis_air_temp_k', 'station_max_temp_c', 'reanalysis_min_air_temp_k', 'reanalysis_air_temp_k']]
+x = sj[['reanalysis_dew_point_temp_k', 'reanalysis_specific_humidity_g_per_kg', 'station_avg_temp_c',  'station_min_temp_c']]
 y = sj['total_cases']
 
 #Splitting the dataset
