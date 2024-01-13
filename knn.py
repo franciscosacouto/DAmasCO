@@ -6,6 +6,9 @@ import scipy as scipy
 from datetime import datetime
 import features
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
+
+
 from math import sqrt
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import mean_squared_error
@@ -15,10 +18,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 sj = features.sj
-features = ['reanalysis_specific_humidity_g_per_kg','reanalysis_dew_point_temp_k','station_avg_temp_c','station_min_temp_c','week_start_date']
+features = ['reanalysis_specific_humidity_g_per_kg','reanalysis_dew_point_temp_k','station_avg_temp_c','station_min_temp_c','week_start_date','weekofyear']
 
-sj_train_x, sj_test_x, sj_train_y, sj_test_y = train_test_split(sj[features], sj['total_cases'], test_size=0.2, random_state=12345)
+sj_train_x, sj_test_x, sj_train_y, sj_test_y = train_test_split(sj[features], sj['total_cases'], test_size=0.4, random_state=12345)
 keep_dates = sj_train_x['week_start_date']
+keep_dates_test = sj_test_x['week_start_date']
 sj_train_x = sj_train_x.drop('week_start_date',axis=1)
 sj_test_x = sj_test_x.drop('week_start_date',axis=1)
 
@@ -29,20 +33,25 @@ normalized_data = scaler.fit_transform(sj_train_x)
 sj_train_x = pd.DataFrame(normalized_data, columns=sj_train_x.columns)
 normalized_data = scaler.fit_transform(sj_test_x)
 sj_test_x = pd.DataFrame(normalized_data, columns=sj_test_x.columns)
-knn_model = KNeighborsRegressor(n_neighbors=10)
+knn_model = KNeighborsRegressor(n_neighbors=5)
 knn_model.fit(sj_train_x, sj_train_y)
 
 train_preds = knn_model.predict(sj_train_x)
 mse = mean_squared_error(sj_train_y, train_preds)
 rmse = sqrt(mse)
-print(rmse)
+print("train data" , rmse)
+MAE= mean_absolute_error(sj_train_y,train_preds)
+print("MAE train:", MAE)
+
 test_preds = knn_model.predict(sj_test_x)
 mse = mean_squared_error(sj_test_y, test_preds)
-rmse = sqrt(mse)
-
-print(rmse)
-
+rmse_test = sqrt(rmse)
+print("test data" , rmse_test)
+MAE_test= mean_absolute_error(sj_test_y,test_preds)
+print("MAE test:", MAE_test)
 train_preds_df = pd.DataFrame(train_preds, columns=['total_cases_predicted'])
+test_preds_df = pd.DataFrame(test_preds,columns=['total_cases_predicted'])
+sj_test_y = pd.DataFrame(sj_test_y, columns=['total_cases'])
 
 sj_train_y = pd.DataFrame(sj_train_y, columns=['total_cases'])
 
@@ -52,11 +61,13 @@ sj_train_y = pd.DataFrame(sj_train_y, columns=['total_cases'])
 
 train_preds_df["week_start_date"] = keep_dates.values
 sj_train_x["week_start_date"] = keep_dates.values
+sj_test_x['week_start_date'] = keep_dates_test.values
+test_preds_df['week_start_date'] = keep_dates_test.values
 
 
        # Plotting predictions versus y_train for sj_data
-plt.plot(sj_train_x['week_start_date'], sj_train_y['total_cases'], label='Actual total_cases', color='blue')
-plt.plot(train_preds_df['week_start_date'], train_preds_df['total_cases_predicted'], label='Predicted total_cases', color='red')
+plt.plot(sj_test_x['week_start_date'], sj_test_y['total_cases'], label='Actual total_cases', color='blue')
+plt.plot(test_preds_df['week_start_date'], test_preds_df['total_cases_predicted'], label='Predicted total_cases', color='red')
 
 
 plt.title('Predictions vs Actual for sj_data')
