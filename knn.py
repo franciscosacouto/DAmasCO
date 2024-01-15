@@ -16,71 +16,112 @@ from math import sqrt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
-
+iq = features.iq
 sj = features.sj
-features = ['reanalysis_specific_humidity_g_per_kg','reanalysis_dew_point_temp_k','station_avg_temp_c','station_min_temp_c','week_start_date','weekofyear']
+def examine(y_pred, y_test):
+    c = pd.DataFrame({
+        'y' : y_test,
+        'p' : y_pred
+     })
+    c = c.sort_index()
+    plt.figure(figsize=[15,4])
+    plt.plot(c.y, color='green')
+    plt.plot(c.p, color='red')
+    plt.show()
+features = ['reanalysis_specific_humidity_g_per_kg','reanalysis_dew_point_temp_k','station_avg_temp_c','station_min_temp_c','weekofyear']
 
-sj_train_x, sj_test_x, sj_train_y, sj_test_y = train_test_split(sj[features], sj['total_cases'], test_size=0.4, random_state=12345)
-keep_dates = sj_train_x['week_start_date']
-keep_dates_test = sj_test_x['week_start_date']
-sj_train_x = sj_train_x.drop('week_start_date',axis=1)
-sj_test_x = sj_test_x.drop('week_start_date',axis=1)
+sj_train_x, sj_val_x, sj_train_y, sj_val_y = train_test_split(sj[features], sj['total_cases'], test_size=0.2, random_state=12345)
+
 
 
 scaler = MinMaxScaler()
 
 normalized_data = scaler.fit_transform(sj_train_x)
 sj_train_x = pd.DataFrame(normalized_data, columns=sj_train_x.columns)
-normalized_data = scaler.fit_transform(sj_test_x)
-sj_test_x = pd.DataFrame(normalized_data, columns=sj_test_x.columns)
-knn_model = KNeighborsRegressor(n_neighbors=5)
+normalized_data = scaler.fit_transform(sj_val_x)
+sj_val_x = pd.DataFrame(normalized_data, columns=sj_val_x.columns)
+knn_model = KNeighborsRegressor(n_neighbors=10)
 knn_model.fit(sj_train_x, sj_train_y)
 
 train_preds = knn_model.predict(sj_train_x)
 mse = mean_squared_error(sj_train_y, train_preds)
 rmse = sqrt(mse)
+print("SAN JUAN")
 print("train data" , rmse)
 MAE= mean_absolute_error(sj_train_y,train_preds)
 print("MAE train:", MAE)
 
-test_preds = knn_model.predict(sj_test_x)
-mse = mean_squared_error(sj_test_y, test_preds)
+val_preds = knn_model.predict(sj_val_x)
+mse = mean_squared_error(sj_val_y, val_preds)
 rmse_test = sqrt(rmse)
 print("test data" , rmse_test)
-MAE_test= mean_absolute_error(sj_test_y,test_preds)
+MAE_test= mean_absolute_error(sj_val_y,val_preds)
 print("MAE test:", MAE_test)
-train_preds_df = pd.DataFrame(train_preds, columns=['total_cases_predicted'])
-test_preds_df = pd.DataFrame(test_preds,columns=['total_cases_predicted'])
-sj_test_y = pd.DataFrame(sj_test_y, columns=['total_cases'])
+
 
 sj_train_y = pd.DataFrame(sj_train_y, columns=['total_cases'])
 
 
-#keep_dates = keep_dates.drop('week_start_date',axis=0)
+examine(val_preds,sj_val_y)
 
 
-train_preds_df["week_start_date"] = keep_dates.values
-sj_train_x["week_start_date"] = keep_dates.values
-sj_test_x['week_start_date'] = keep_dates_test.values
-test_preds_df['week_start_date'] = keep_dates_test.values
 
 
-       # Plotting predictions versus y_train for sj_data
-plt.plot(sj_test_x['week_start_date'], sj_test_y['total_cases'], label='Actual total_cases', color='blue')
-plt.plot(test_preds_df['week_start_date'], test_preds_df['total_cases_predicted'], label='Predicted total_cases', color='red')
 
 
-plt.title('Predictions vs Actual for sj_data')
-plt.show()
-   
-# plt.xlabel('Week Start Date')
-#     plt.ylabel('Total Cases')
-#     plt.legend()
-# else:
-#     print("Error: Sizes of test_sj['total_cases'] and y_pred_sj are different.")
+rawfeats = pd.read_csv('data/dengue_features_test.csv')
+sj_test = rawfeats[rawfeats.city=='sj'].copy()
+sj_test = sj_test[features]
+sj_test = sj_test.interpolate(method='linear', limit_direction='forward')
+sj_norm = scaler.fit_transform(sj_test)
+sj_test = pd.DataFrame(sj_norm, columns=sj_test.columns)
+sj_test_preds = knn_model.predict(sj_test)
+sj_test_preds = sj_test_preds.astype(int)
 
-# # Calculate and print mean absolute error (MAE) and mean squared error (MSE) for sj_data
-# mae_sj = mean_absolute_error(test_sj['total_cases'], y_pred_sj)
-# mse_sj = mean_squared_error(test_sj['total_cases'], y_pred_sj)
-# print(f'Mean Absolute Error (MAE) for sj_data: {mae_sj}')
-# print(f'Mean Squared Error (MSE) for sj_data: {mse_sj}')
+
+features = ['reanalysis_specific_humidity_g_per_kg','reanalysis_dew_point_temp_k','station_avg_temp_c','station_min_temp_c','weekofyear']
+
+iq_train_x, iq_val_x, iq_train_y, iq_val_y = train_test_split(iq[features], iq['total_cases'], test_size=0.2, random_state=12345)
+
+
+
+
+normalized_data = scaler.fit_transform(iq_train_x)
+iq_train_x = pd.DataFrame(normalized_data, columns=iq_train_x.columns)
+normalized_data = scaler.fit_transform(iq_val_x)
+iq_val_x = pd.DataFrame(normalized_data, columns=iq_val_x.columns)
+knn_model = KNeighborsRegressor(n_neighbors=10)
+knn_model.fit(iq_train_x, iq_train_y)
+
+iq_train_preds = knn_model.predict(iq_train_x)
+iq_test_preds= knn_model.predict(iq_val_x)
+mse = mean_squared_error(iq_train_y, iq_train_preds)
+print("IQUITOS")
+rmse = sqrt(mse)
+print("train rmse" , rmse)
+MAE= mean_absolute_error(iq_train_y,iq_train_preds)
+print("MAE train:", MAE)
+mse = mean_squared_error(iq_val_y, iq_test_preds)
+rmse_test = sqrt(rmse)
+print("test data" , rmse_test)
+MAE_test= mean_absolute_error(iq_val_y,iq_test_preds)
+print("MAE test:", MAE_test)
+
+examine(iq_test_preds,iq_val_y)
+
+
+
+
+iq_test = rawfeats[rawfeats.city=='iq'].copy()
+iq_test = iq_test[features]
+iq_test = iq_test.interpolate(method='linear', limit_direction='forward')
+iq_norm = scaler.fit_transform(iq_test)
+iq_test = pd.DataFrame(iq_norm, columns=iq_test.columns)
+iq_test_preds = knn_model.predict(iq_test)
+iq_test_preds = iq_test_preds.astype(int)
+
+submission = pd.read_csv('data/submission_format.csv',index_col=[0, 1, 2])
+submission.total_cases = np.concatenate([sj_test_preds, iq_test_preds])
+submission.to_csv("submissions/knn.csv")
+
+
